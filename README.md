@@ -3,37 +3,25 @@
 Python script to calculate the fraction of annotated spliced reads at intron-exon junctions in TT-seq, written by Benjamin J. E. Martin (Karen Adelman Lab). 
 
 Inputs:
-  1. BAM file, paired end reverse stranded BAM files only. If you want something else, write your own script :)
-  2. GTF file for gene annotations, I recommend using dominant transcripts for this. This should be sorted by the transcript IDs - 
-  3. output file naame, filename for output matrix
-
-Notes, 
-1. be cautious using alternatively spliced exons. This is safest to do for constitutive exons/introns. 
-1. I report the number of annotated and total spliced reads. To filter for constitutive introns, I would suggest filtering to remove those with aa high % of unannotated spliced reads.
-1. Currently this outputs a lot of columns, most of these are for QC, I'll highlight the key ones to pay attention to below.
-1. I'm requiring at least 10bp aligned on either side of splice site for a read to be counted
-1. because paired-end reads often have both reads aligning to a splice site, I am counting fragments here. So if both read1 and read2 align to 3' splice site this will count as 1 read in my count totals.
+  1. BAM file (paired end reverse stranded BAM files only)
+  2. GTF file for gene annotations 
+  3. Output file name
 
 ## Running the script
 
 Step 1: Load the necessary conda environment
 ```
-srun --pty -t 0-7:0 --mem=30G -c 5 -p interactive bash
 module load gcc/6.2.0
 module load python/3.6.0
 module load conda2/4.2.13
 
-#Install cgat-tools
-
-## Installing cgat virtual environment
+## This script requires cgat-tools, install cgat-tools if needed
 cgat-tools: https://github.com/CGATOxford/cgat/blob/master/install-CGAT-tools.sh
 
 ```
-```
-
-
 
 Step 2: Sort the GTF by transcript id (note, this is assuming the ENSEMBL ordering of the 9th column):
+
 ```
 sort -t ";" -k 3 your_gtf.gtf > your_gtf_sorted_by_tx_id.gtf
 ```
@@ -62,7 +50,7 @@ python calculate_fraction_spliced.py your_data.bam your_gtf_sorted_by_tx_id.gtf 
 11. Unspliced_3p_counts - the number of unspliced reads counted across the 3' splice site
 12. spliced_3p_uncounted - the number of spliced reads, aligned to 3' exon, but not consisting of annotated exon-exon splicing event (either a different 5' or 3' splice site gets counted here)
 13. spliced_3p_block_too_small - reads with detected splicing but less than 10bp aligned on both ends of splicing (either at the 3' splice site or at the other end of splice junction
-14. unspliced_3p_uncounted - unspliced reads not counted becase did not contain 10bp aligned on either end of 3' splice site
+14. unspliced_3p_uncounted - unspliced reads not counted because the read did not contain 10bp aligned on either end of 3' splice site
 15. antisense_3p_counts - the number of 3' reads counted on the antisense strand
 16. Fraction_5p_spliced- fraction of annotated 5' aligning reads that are spliced: Exon_Exon_5p_counts / (Exon_Exon_5p_counts + Unspliced_5p_counts)
 17. Fraction_5p_annotated_splice - the fraction of 5' spliced reads that are the annotated exon-exon spliced: Exon_Exon_5p_counts / (Exon_Exon_5p_counts + spliced_5p_uncounted)
@@ -70,5 +58,9 @@ python calculate_fraction_spliced.py your_data.bam your_gtf_sorted_by_tx_id.gtf 
 19. Unspliced_5p_counts - the number of unspliced reads counted across the 5' splice site
 20. spliced_5p_uncounted - the number of spliced reads, aligned to 5' exon, but not consisting of annotated exon-exon splicing
 21. spliced_5p_block_too_small  - reads with detected splicing but less than 10bp aligned on both ends of splicing (either at the 5' splice site or at the other end of splice junction
-22. unspliced_5p_uncounted - unspliced reads not counted becase did not contain 10bp aligned on either end of 5' splice site
+22. unspliced_5p_uncounted - unspliced reads not counted because the read did not contain 10bp aligned on either end of 5' splice site
 23. antisense_5p_counts - the number of 5' reads counted on the antisense strand
+
+Additional Notes: 
+1. Written for analysis of constitutive exons/introns
+2. This script counts TT-seq fragments i.e., if both read1 and read2 align to the 3' splice site this will count as 1 read in the count totals.
